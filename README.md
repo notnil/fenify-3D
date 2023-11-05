@@ -132,13 +132,13 @@ Upon the establishment of a sufficiently trained model, the entire dataset under
 
 ## Training
 
-Previous open source board detection models preprocess the board by dividing it into 64 squares and classifying each square separately. Fenify-3D avoids this preprocessing and predicts all 64 squares directly from the model. While harder to train, this methodology enables much wider viewing angles and doesn't fail with occlusion.    
+Previous open-source models for board detection typically preprocess the image by segmenting the board into 64 individual squares, analyzing each square in isolation. In contrast, Fenify-3D eschews this preprocessing step, opting instead to infer the state of all 64 squares directly from the full board image. Although this approach presents greater challenges during the training phase, it confers the advantage of tolerating wider viewing angles and maintaining robustness in the presence of occlusion.   
 
 ### Dataset and Augmentation
 
 ![Alt text](readme-assets/image-007.png)
 
-The dataset for training includes 30,000 synthetic and 9,505 crowdsourced images.  The dataset was also augmented using color and geometric transformations during training.  Augmentations were limited by two primary factors.  Vertical flips, horizontal flips, and significant rotations weren't possible since it would materially affect the visual representation of the pieces.  Piece placement is relative to the viewing angle, not an absolute placement.  Horizontal flips were implemented by wrapping both the image and board transformations together.  Color augmentations were also limited to prevent pixel intensity inversion.  If light and dark colors are inverted, the piece color assignments would be incorrect.  
+The training dataset comprises 30,000 synthetic images alongside 9,505 images sourced via crowdsourcing. During the training process, the dataset was expanded through the use of color and geometric transformations. However, this augmentation was constrained by certain considerations. Vertical flips, extensive rotations, and horizontal flips could not be utilized as they would fundamentally alter the pieces' visual identifiers, given that piece placement is dependent on the angle of view and not fixed. To accommodate horizontal flips, both image and board transformations were synchronized. Color augmentations were deliberately restrained to avoid the inversion of pixel intensity, which would result in an erroneous assignment of piece colors.
 
 The following transforms were used during training:
 ```python
@@ -151,9 +151,11 @@ FlipTransform()
 
 ### Model
 
-Pytorch, TorchVision, and Pytorch Lightning were the frameworks used to train the model.  The model consisted of a EfficientNetV2_S image decoder and a linear output layer consisting of 819 outputs grouping sixty four squares with thirteen possible outputs.  The forward function reshapes the output head into 64x13 outputs and then performs softmax on the piece dimension yielding predictions for the entire board.
+The frameworks utilized for training the model were Pytorch, TorchVision, and Pytorch Lightning. The architecture of the model centered around an EfficientNetV2_S as the image decoder, coupled with a linear output layer that features 819 nodes. This design allows for the grouping of the chessboard's sixty-four squares, with each square having thirteen potential outputs corresponding to different pieces or lack thereof.
 
-The EfficientNet series including EfficientNet_B4 and EfficientNetV2_S were the only model architectures that converged to an accurate result.  Popular model architectures such as Resnet50 never reached a high enough accuracy to be useful.   
+Within the model's forward function, the linear layer's output is reshaped into a 64x13 matrix. Following this, a softmax function is applied along the piece dimension, which effectively yields the probability distributions for piece predictions across the entire chessboard.
+
+Notably, only the EfficientNet series, including EfficientNet_B4 and EfficientNetV2_S, successfully achieved convergence and produced results with substantial accuracy. Contrarily, other renowned architectures like Resnet50 did not attain an accuracy level sufficient for practical application in this context.  
 
 ```python
 class Model(pl.LightningModule):
@@ -179,9 +181,9 @@ class Model(pl.LightningModule):
 
 ### Loss Function
 
-Initial attempts to train a model using a standard class prediction per square failed because of the steep learning curve of matching visual features to exact board position.  In order to smooth out the learning gradient, piece sets were added to give the model "partial credit".  For example if the model predicts a white queen with 100% confidence instead of a white king with the Full piece set, it would experience the full loss.  With the Binary and Colors piece sets, it would experience no loss indicating a correct response.  
+The initial training approach, which involved predicting the class of each square directly, proved challenging due to the complexity of mapping visual features to precise board positions. To address this, the model was adapted to include various piece sets, allowing it to earn "partial credit" for near-accurate predictions. For instance, if the model confidently predicted a white queen instead of a white king in the Full piece set, it would incur full loss. However, with the Binary and Colors piece sets, this prediction would not count as an error since the color match was correct.
 
-Training eventually converged using the Binary, Colors, ColorBlind, and Full piece sets. Ultimately the correct class is needed, but by creating a smoother learning gradient the model latched on to import features by solving easier versions of the board prediction problem.  
+The training process eventually achieved convergence by employing a combination of Binary, Colors, ColorBlind, and Full piece sets. This multi-tiered approach enabled the model to gradually recognize crucial features by first excelling at simpler versions of the prediction task, thereby creating a more manageable learning gradient and facilitating the capture of essential characteristics for the more complex Full piece set classification.
 
 
 | Piece Set                | Descriptor |
@@ -197,9 +199,7 @@ Training eventually converged using the Binary, Colors, ColorBlind, and Full pie
 
 ![Alt text](readme-assets/image-008.png)
 
-The training and validation sets were 90% and 10% of the 39,505 combined synthetic and crowdsourced datasets.  A batch size of 16 images with a learning rate of 1e-4 was used for training for the first ~60 epochs which took around 10 hours. 
-
-Training used learning rate and batch size annealing and gradually increased during both learning rate and batch size during the training process to improve the robustness and generalization of the model.  This schedule wasn't systematically tested but worked well in practice.  
+The composition of the training and validation sets was derived from a total of 39,505 images, split into 90% for training and 10% for validation, blending synthetic and crowdsourced data. An initial batch size of 16 images and a learning rate of \(1 \times 10^{-4}\) were selected for the training phase, which spanned approximately 60 epochs and lasted close to ~10 hours.  A second phase with a batch size of 32 images and a learning rate of \(1 \times 10^{-4}\) trained for another 40 epochs for another ~7 hours.
 
 ## Accuracy
 
