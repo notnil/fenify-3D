@@ -1,0 +1,5 @@
+python-chess
+numpy
+Pillow
+torch
+torchvision

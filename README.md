@@ -215,7 +215,7 @@ The validation set comes from the same data distribution as the training set.  T
 | Binary Accuracy         | 0.999    |
 | Colors Accuracy         | 0.974    |
 | Color-blind Accuracy    | 0.974    |
-| *Full Accuracy*         | *0.950*    |
+| **Full Accuracy**         | **0.950**    |
 
 #### Prediction Visualization
 
@@ -264,7 +264,7 @@ The test set comes from a different data distribution than the training set.  It
 | Binary Accuracy               | 0.905   |
 | Colors Accuracy               | 0.887   |
 | Color-Blind Accuracy          | 0.864   |
-| *Full Accuracy*                 | *0.852*   |
+| **Full Accuracy**                 | **0.852**   |
 
 #### Prediction Visualization
 
@@ -297,4 +297,50 @@ Given the relative simplicity of predicting empty squares, a modest training epo
 
 ## Inference
 
-TODO
+The inference code is shown in `predict.py` and `main.py`.  Prediction uses a Pytorch TorchScript jit compiled model.  The latest model can be found in releases. 
+
+BoardPredictor encapsulates the required pre and post processing steps in order to use the model.  BoardPredictor can return a fully formed `chess.Board` with predict or confidence results of type `dict[chess.Square, list[float]]` with predict_with_confidence.
+```python
+class BoardPredictor:
+    def __init__(
+        self, model_file_path: str = "assets/2022-06-01-chesspic-fen-model-cpu.pt"
+    ) -> None:
+        self.model = torch.jit.load(model_file_path)
+        self.img_transform = T.Compose(
+            [
+                T.Resize((400, 400)),
+                T.Lambda(lambda img: img.convert("RGB")),
+                T.ToTensor(),
+                T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+            ]
+        )
+
+    def predict(self, image_file_path: str) -> chess.Board:
+        img = Image.open(image_file_path)
+        x = self.img_transform(img)
+        img_batch = torch.unsqueeze(x, 0)
+        y_hat = self.model(img_batch)
+        y_hat = torch.squeeze(y_hat)
+        y_hat_board = torch.argmax(y_hat, dim=1)
+        y_hat_board = torch.reshape(y_hat_board, (8, 8))
+        y_hat_board = Board.from_array(y_hat_board.cpu().numpy())
+        return y_hat_board.board
+
+    def predict_with_confidence(
+        self, image_file_path: str
+    ) -> dict[chess.Square, list[float]]:
+        img = Image.open(image_file_path)
+        x = self.img_transform(img)
+        img_batch = torch.unsqueeze(x, 0)
+        y_hat = self.model(img_batch)
+        y_hat = torch.squeeze(y_hat)
+        d = {}
+        for sq in range(64):
+            d[sq] = y_hat[sq].tolist()
+        return d
+```
+
+A convience script is available in `main.py`:
+```bash
+python main.py model.pt readme-assets/prediction_example.png
+```
