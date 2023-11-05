@@ -16,9 +16,9 @@ Fenify-3D is a specialized project leveraging AI, Machine Learning (ML), and dee
 
 The Forsyth-Edwards Notation (FEN) is a standard notation crucial for delineating specific board positions in a chess game. FEN encapsulates all essential information, enabling the recommencement of a game from a defined position.
 
-Fenify-3D is meticulously engineered to analyze an image of a physical chess board and deliver a precise FEN string, illustrating the current state of the board. This facilitates the real-time transcription of chess games through video input in downstream applications.
+Fenify-3D is engineered to analyze an image of a physical chess board and deliver a precise FEN string, illustrating the current state of the board. This facilitates the real-time transcription of chess games through video input in downstream applications.
 
-Distinct from existing chess game recording systems utilizing image and video data, Fenify-3D presents an innovative approach. It operates without necessitating a "top-down" perspective of the board, and accomidates various angles, provided the board maintains reasonable visibility. This methodological refinement enhances the adaptability and applicability of the system in diverse real-world scenarios. 
+Distinct from existing chess game recording systems utilizing image and video data, Fenify-3D presents an innovative approach. It operates without necessitating a "top-down" perspective of the board, and accomidates various angles, provided the board maintains reasonable visibility. This refinement enhances the adaptability and applicability of the system in diverse real-world scenarios. 
 
 ## Dataset 
 
