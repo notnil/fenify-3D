@@ -199,7 +199,7 @@ The training process eventually achieved convergence by employing a combination 
 
 ![Alt text](readme-assets/image-008.png)
 
-The composition of the training and validation sets was derived from a total of 39,505 images, split into 90% for training and 10% for validation, blending synthetic and crowdsourced data. An initial batch size of 16 images and a learning rate of \(1 \times 10^{-4}\) were selected for the training phase, which spanned approximately 60 epochs and lasted close to ~10 hours.  A second phase with a batch size of 32 images and a learning rate of \(1 \times 10^{-4}\) trained for another 40 epochs for another ~7 hours.  All training was done on a V100 Colab instance as shown in `training.ipynb`.
+The composition of the training and validation sets was derived from a total of 39,505 images, split into 90% for training and 10% for validation, blending synthetic and crowdsourced data. An initial batch size of 16 images and a learning rate of 1e-4 were selected for the training phase, which spanned approximately 60 epochs and lasted close to ~10 hours.  A second phase with a batch size of 32 images and a learning rate of 1e-4 trained for another 40 epochs for another ~7 hours.  All training was done on a V100 Colab instance as shown in `training.ipynb` but due to unexpected restarts the exact training run was lost. 
 
 ## Accuracy
 
